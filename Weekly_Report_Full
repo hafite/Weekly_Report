@@ -1,0 +1,148 @@
+import requests
+from bs4 import BeautifulSoup
+from lxml import html
+import os
+etree = html.etree
+# 给定爬取网址
+toProcess = r'http://11.com:0/1bug-browse-7-0-bySearch-82.html'
+ProcessDealy = r'http://11.com:0/1bug-browse-7-0-bySearch-83.html'
+FoundThisWeek = r'http://11.com:0/1bug-browse-7-0-bySearch-84.html'
+ClosedThisWeek = r'http://11.com:0/1bug-browse-7-0-bySearch-85.html'
+MainIssueNotClose = r'http://11.com:0/1bug-browse-7-0-bySearch-86.html'
+VIPIssueNotClose = r'http://11.com:0/1bug-browse-7-0-bySearch-87.html'
+toProcessEXP = r'http://11.com:0/1bug-browse-7-0-bySearch-88.html'
+ProcessDealyEXP = r'http://11.com:0/1bug-browse-7-0-bySearch-89.html'
+FoundThisWeekEXP = r'http://11.com:0/1bug-browse-7-0-bySearch-90.html'
+ClosedThisWeekEXP = r'http://11.com:0/1bug-browse-7-0-bySearch-91.html'
+MainIssueNotCloseEXP = r'http://11.com:0/1bug-browse-7-0-bySearch-92.html'
+VIPIssueNotCloseEXP = r'http://11.com:0/1bug-browse-7-0-bySearch-93.html'
+# 定义问题类型
+issueType1 = '待处理问题'
+issueType2 = '延期处理问题'
+issueType3 = '本周发现问题'
+issueType4 = '本周关闭问题'
+issueType5 = '主要问题未关闭'
+issueType6 = '重要问题未关闭'
+issueType7 = '待处理问题(exp)'
+issueType8 = '延期处理问题(exp)'
+issueType9 = '本周发现问题(exp)'
+issueType10 = '本周关闭问题(exp)'
+issueType11 = '主要问题未关闭(exp)'
+issueType12 = '重要问题未关闭(exp)'
+# 将postman中参数格式化（变成可供可供requests.get和post引用的）的方法:用正则"^"替换开头,"$"替换结尾,在各键值对后面加上逗号以及空格
+# ,以正则表达式\r\n为条件将结果替换为空即可
+# 存放bug类型中文名称
+bugType1 = '设计变更'
+bugType2 = '新增需求'
+bugType3 = '事务追踪'
+bugType4 = '接口问题'
+bugType5 = '业务流程'
+bugType6 = '数据问题'
+bugType7 = '程序错误'
+bugType8 = '浏览器兼容性'
+bugType9 = '页面显示'
+bugType10 = '性能问题'
+bugType11 = '建议类'
+bugType12 = '设计缺陷'
+bugType13 = '功能错误'
+bugType14 = '其他'
+bugType15 = '空'
+# 空列表
+emptyList = []
+# 将变量存放到列表
+issueList = [toProcess, ProcessDealy, FoundThisWeek, ClosedThisWeek, MainIssueNotClose, VIPIssueNotClose, toProcessEXP, ProcessDealyEXP, FoundThisWeekEXP, ClosedThisWeekEXP, MainIssueNotCloseEXP, VIPIssueNotCloseEXP]
+issueTypeList = [issueType1, issueType2, issueType3, issueType4, issueType5, issueType6, issueType7, issueType8, issueType9, issueType10, issueType11, issueType12]
+# 获取问题列表的指定消息头（带cookie）
+headers = {登录后所获取的消息头}
+# 获取问题类型统计的请求指定消息头
+postHeaders = {登录后所获取的消息头}
+getHeaders = {登录后所获取的消息头}
+# 在issueList列表中进行遍历,统计各类型问题数,zip()为元组，即列表的集合
+for i, j in zip(issueList, issueTypeList):
+    # 获取页面资源
+    req1 = requests.get(url=i, headers=headers)
+    # 将页面资源设置字符集为utf-8，并转化为文本
+    req1.encoding = 'utf-8'
+    html = req1.text
+    # beautifulsoup调用lxml解析
+    bs = BeautifulSoup(html, 'lxml')
+    # etree转化文本为html对象，使得可以用xpath进行元素选择
+    ehtml = etree.HTML(html)
+    # 使用xpath进行选择其中的文本（用到了/text()）
+    listToProcess = ehtml.xpath('//div[2]/div/strong[1]/text()')
+    # 将列表元素进行合并，拼接为字符串（列表中的所有对象进行合并，以单引号包起来）
+    numToProcess = ''.join(listToProcess)
+    # 遍历问题类型列表，打印结果
+    print(j, ':', numToProcess)
+# 获取正式环境本周发现问题列表中的内容
+for i in FoundThisWeek:
+    # 获取页面资源
+    req1 = requests.get(url=FoundThisWeek, headers=headers)
+    # 将页面资源设置字符集为utf-8，并转化为文本
+    req1.encoding = 'utf-8'
+    html = req1.text
+    # beautifulsoup调用lxml解析
+    bs = BeautifulSoup(html, 'lxml')
+    # etree转化文本为html对象，使得可以用xpath进行元素选择
+    ehtml = etree.HTML(html)
+    # //table/tbody/tr/td[4]/a/text()这个是获取问题列表中单个问题内容的xpath
+    listToProcess = ehtml.xpath('//table/tbody/tr/td[4]/a/text()')
+    # //table/tbody/tr/td[1]/a/text()这个是获取问题列表的bug编号
+    bugnumToProcess = ehtml.xpath('//table/tbody/tr/td[1]/a/text()')
+# 遍历问题类型列表，打印结果,拼接单个问题内容,':'和bug编号。判断列表是否为空也可以用emptyList = []来做空列表以判断是否相等
+if (listToProcess) == emptyList:
+    print('本周正式环境没有新增问题')
+else:
+    for i, j in zip(listToProcess, bugnumToProcess):
+        print(i, ';', j)
+# 获取exp环境本周发现问题列表中的内容
+for i in FoundThisWeekEXP:
+    # 获取页面资源
+    html = requests.get(url=FoundThisWeekEXP, headers=headers)
+    # 将页面资源设置字符集为utf-8，并转化为文本
+    req1.encoding = 'utf-8'
+    html = req1.text
+    beautifulsoup调用lxml解析
+    bs = BeautifulSoup(html, 'lxml')
+    # etree转化文本为html对象，使得可以用xpath进行元素选择
+    ehtml = etree.HTML(html)
+    # //table/tbody/tr/td[4]/a/text()这个是获取问题列表中单个问题内容的xpath
+    listToProcess = ehtml.xpath('//table/tbody/tr/td[4]/a/text()')
+    # //table/tbody/tr/td[1]/a/text()这个是获取问题列表的bug编号
+    bugnumToProcess = ehtml.xpath('//table/tbody/tr/td[1]/a/text()')
+# 遍历问题类型列表，打印结果,拼接单个问题内容,':'和bug编号。判断列表是否为空也可以用emptyList = []来做空列表以判断是否相等
+if (listToProcess) == emptyList:
+    print('本周EXP环境没有新增问题')
+else:
+    for i, j in zip(listToProcess, bugnumToProcess):
+        print(i, ';', j)
+# 将CMD控制台输出内容重定向到txt文本中
+os.popen(r'python C:\Users\1\PycharmProjects\trial\Weekly_Report.py > C:\Users\1\Desktop\Weekly_Report.txt')
+
+# 本周发现问题包含问题类型统计
+# # 获取页面资源
+# s = requests.session()
+# req1 = s.post(url=postUrl, params=designWeakness, headers=postHeaders)
+# req2 = s.get(url=getUrl, headers=getHeaders)
+# # req3 = s.get(url=getUrl1,headers=getHeaders1)
+# # print(req2.content.decode('utf-8'))
+# # 将页面资源设置字符集为utf-8，并转化为文本
+# req2.encoding = 'utf-8'
+# html = req2.text
+# # beautifulsoup调用lxml解析
+# bs = BeautifulSoup(html, 'lxml')
+# # etree转化文本为html对象，使得可以用xpath进行元素选择
+# ehtml = etree.HTML(html)
+# # 使用xpath进行选择其中的文本（用到了/text()）
+# listToProcess = ehtml.xpath('//div[2]/div/strong[1]/text()')
+# # print(listToProcess)
+# # 将列表元素进行合并，拼接为字符串（列表中的所有对象进行合并，以单引号包起来）
+# numToProcess = ''.join(listToProcess)
+# # 遍历问题类型列表，打印结果
+# print(bugType12, ':', numToProcess)
+
+#如果该模块是被直接运行而非被引用时，将执行以下代码
+if __name__ == '__main__':
+    # 检查原始页面编码
+    print('页面编码是:', requests.get(url=toProcess, headers=headers).encoding)
+    pass
